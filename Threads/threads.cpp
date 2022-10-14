@@ -4,21 +4,11 @@
 #include <chrono>
 #include <random>
 using std::thread;
-/// <summary>
-/// Переменное количество элементов векторов 
-/// Переменное количество потоков 
-/// Сравнение времени с последовательным фрагментом
-/// Сравнение ответов с последовательным фрагментом
-/// </summary>
+/// 1. Input from cmd
+/// 2. Print difference between numbers
+/// 3. Multiplying of matrixes and vectors
 /// 
 
-// Multiplying pairs of values and writing the results to an array
-void buf_mult(double* beginx,  double* beginy, size_t size, double* result)
-{
-    for (int i = 0; i < size; i++) {
-        result[i] = beginx[i] * beginy[i];
-    }
-}
 // Merging all buf elements into one sum (into result value)
 void buf_sum(double* buf, size_t size, double& result) 
 {
@@ -31,6 +21,7 @@ void buf_mult_and_sum(double* beginx, double* beginy, size_t size, double& resul
 {
     for (int i = 0; i < size; i++) {
         double tmp = beginx[i] * beginy[i];
+       // tmp *= sin(beginx[i]) * sin(beginx[i]) + cos(beginx[i]) * cos(beginx[i]);
         result += tmp;
     }
 }
@@ -55,11 +46,11 @@ int main()
 
     int elem_num, thread_num;
     get_elem_and_threads(elem_num, thread_num);
-    double* first = new double[elem_num]; // первый вектор
-    double* second = new double[elem_num]; // второй вектор
-   // double* preresult = new double[elem_num]; // вектор результатов умножения
-    double* result = new double[thread_num]; // результат сложения после каждого потока
-    double total_result = 0; // конечный результат, который создаётся одним потоком
+    double* first = new double[elem_num]; // first vector
+    double* second = new double[elem_num]; // second vector
+    double* result = new double[thread_num]; // result of summing of every thread
+    double total_result1 = 0.0; // is created by one thread
+    double total_result2 = 0.0;
     for (int i = 0; i < elem_num; i++) {
         double element = double(i);
         if (i % 13 == 0) {
@@ -75,32 +66,38 @@ int main()
         result[i] = 0.0;
     }
     auto begin = std::chrono::steady_clock::now();
-    buf_mult_and_sum(first, second, elem_num, std::ref(total_result));
+    buf_mult_and_sum(first, second, elem_num, std::ref(total_result1));
     auto end = std::chrono::steady_clock::now();
     auto elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-    std::cout << "The time: " << elapsed_ms.count() << " microseconds\n";
-    std::cout << "Linear result: " << total_result << "\n";
+    std::cout << "The linear time: " << elapsed_ms.count() << " microseconds\n";
+    std::cout << "Linear result: " << total_result1 << "\n";
 
     //------------------------------------------------------------------------------------------------
 
-    total_result = 0.0;
     auto begin1 = std::chrono::steady_clock::now();
     size_t part = elem_num / thread_num; // часть, которая отдаётся почти каждому потоку 
-    std::thread* thr = new std::thread[thread_num]; // Чтобы учесть создание потоков
+    std::thread* thr = new std::thread[thread_num]; // После счётчика времени, чтобы учесть создание потоков
     for (int i = 0; i < thread_num - 1; i++)
     {
         thr[i] = thread(buf_mult_and_sum, first + i * part, second + i * part, part, std::ref(result[i]));
     }
     int adding = (thread_num - 1) + elem_num % thread_num;
     thr[thread_num - 1] = thread(buf_mult_and_sum, first + adding, second + adding, part, std::ref(result[thread_num - 1]));
+    auto end1 = std::chrono::steady_clock::now();
+    auto elapsed_ms1 = std::chrono::duration_cast<std::chrono::microseconds>(end1 - begin1);    
     for (int i = 0; i < thread_num; i++) {
         thr[i].join();
     }
-    buf_sum(result, thread_num, std::ref(total_result));
-    auto end1 = std::chrono::steady_clock::now();
-    auto elapsed_ms1 = std::chrono::duration_cast<std::chrono::microseconds>(end1 - begin1);
-    std::cout << "The time: " << elapsed_ms1.count() << " microseconds\n";
-    std::cout << "Concurrent result: " << total_result << "\n";
+    auto end2 = std::chrono::steady_clock::now();
+    auto elapsed_ms2 = std::chrono::duration_cast<std::chrono::microseconds>(end2 - end1);
+    buf_sum(result, thread_num, std::ref(total_result2));
+    auto end3 = std::chrono::steady_clock::now();
+    auto elapsed_ms3 = std::chrono::duration_cast<std::chrono::microseconds>(end3 - end2);
+    std::cout << "The creating time: " << elapsed_ms1.count() << " microseconds\n";
+    std::cout << "The join time: " << elapsed_ms2.count() << " microseconds\n";
+    std::cout << "The summing time: " << elapsed_ms3.count() << " microseconds\n";
+    std::cout << "Concurrent result: " << total_result2 << "\n";
+    std::cout << "Diffrence between linear and concurrent results: " << total_result1 - total_result2 << "\n";
 
     //for (int k = 2; k < 26; k++) {
     //    thread_num = k;
@@ -147,7 +144,6 @@ int main()
 /// 2.5 GB
 /// 1 331 445 microseconds
 /// 1.41026e+23
-/// А смысл тогда жить (зачёркнуто) параллелить...
 /// 
 /// Теперь результат ещё страшнее
 /// 1.6 GB
