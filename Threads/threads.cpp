@@ -9,22 +9,32 @@ using std::thread;
 /// 3. Multiplying of matrixes and vectors
 /// 
 
+// for fast type changes
+typedef long long long_type;
 // Merging all buf elements into one sum (into result value)
-void buf_sum(double* buf, size_t size, double& result) 
+void buf_sum(long_type* buf, size_t size, long_type& result) 
 {
     for (int i = 0; i < size; i++) {
         result += buf[i];
     }
 }
 
-void buf_mult_and_sum(double* beginx, double* beginy, size_t size, double& result) 
+void buf_mult_and_sum(long_type* beginx, long_type* beginy, size_t size, long_type& result) 
 {
     for (int i = 0; i < size; i++) {
-        double tmp = beginx[i] * beginy[i];
+        long_type tmp = beginx[i] * beginy[i];
        // tmp *= sin(beginx[i]) * sin(beginx[i]) + cos(beginx[i]) * cos(beginx[i]);
         result += tmp;
     }
 }
+//void buf_mult_and_sum(long long* beginx, long long* beginy, size_t size, long long& result)
+//{
+//    for (int i = 0; i < size; i++) {
+//        long long tmp = beginx[i] * beginy[i];
+//        // tmp *= sin(beginx[i]) * sin(beginx[i]) + cos(beginx[i]) * cos(beginx[i]);
+//        result += tmp;
+//    }
+//}
 
 void get_elem_and_threads(int& elem_num, int& thread_num)
 {
@@ -46,19 +56,19 @@ int main()
 
     int elem_num, thread_num;
     get_elem_and_threads(elem_num, thread_num);
-    double* first = new double[elem_num]; // first vector
-    double* second = new double[elem_num]; // second vector
-    double* result = new double[thread_num]; // result of summing of every thread
-    double total_result1 = 0.0; // is created by one thread
-    double total_result2 = 0.0;
+    long_type* first = new long_type[elem_num]; // first vector
+    long_type* second = new long_type[elem_num]; // second vector
+    long_type* result = new long_type[thread_num]; // result of summing of every thread
+    long_type total_result1 = 0.0; // is created by one thread
+    long_type total_result2 = 0.0;
     for (int i = 0; i < elem_num; i++) {
-        double element = double(i);
+        long_type element = long_type(i);
         if (i % 13 == 0) {
-            element *= -1.0;
-            second[i] = double(elem_num) + element;
+            element *= long_type(-1);
+            second[i] = long_type(elem_num) + element;
         }
         else {
-            second[i] = double(elem_num) - element;
+            second[i] = long_type(elem_num) - element;
         }
         first[i] = element;
     }
@@ -81,8 +91,9 @@ int main()
     {
         thr[i] = thread(buf_mult_and_sum, first + i * part, second + i * part, part, std::ref(result[i]));
     }
-    int adding = (thread_num - 1) + elem_num % thread_num;
-    thr[thread_num - 1] = thread(buf_mult_and_sum, first + adding, second + adding, part, std::ref(result[thread_num - 1]));
+    int adding1 = (thread_num - 1) * part;
+    int adding2 = adding1 + elem_num % thread_num;
+    thr[thread_num - 1] = thread(buf_mult_and_sum, first + adding1, second + adding2, part, std::ref(result[thread_num - 1]));
     auto end1 = std::chrono::steady_clock::now();
     auto elapsed_ms1 = std::chrono::duration_cast<std::chrono::microseconds>(end1 - begin1);    
     for (int i = 0; i < thread_num; i++) {
