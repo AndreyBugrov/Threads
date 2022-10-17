@@ -2,15 +2,28 @@
 #include <vector>
 #include <iostream>
 #include <chrono>
-#include <random>
+#include <string> 
 using std::thread;
-/// 1. Input from cmd
-/// 2. Print difference between numbers
+/// 1. Input from cmd +
+/// 2. Print difference between numbers +
 /// 3. Multiplying of matrixes and vectors
 /// 
 
+
+//FINALLY!!!
+//Element number : 250000000
+//Thread number : 25
+//The linear time : 2 363 538 microseconds
+//Linear result : 2.20353e+24
+//The creating time : 30120 microseconds
+//The join time : 1 554 104 microseconds
+//The summing time : 0 microseconds
+//Concurrent result : 2.20353e+24
+//Diffrence between linear and concurrent results : 6.24918e+11
+//Diffrence between linear and concurrent time : 779313 microseconds
+
 // for fast type changes
-typedef long long long_type;
+typedef double long_type;
 // Merging all buf elements into one sum (into result value)
 void buf_sum(long_type* buf, size_t size, long_type& result) 
 {
@@ -27,14 +40,6 @@ void buf_mult_and_sum(long_type* beginx, long_type* beginy, size_t size, long_ty
         result += tmp;
     }
 }
-//void buf_mult_and_sum(long long* beginx, long long* beginy, size_t size, long long& result)
-//{
-//    for (int i = 0; i < size; i++) {
-//        long long tmp = beginx[i] * beginy[i];
-//        // tmp *= sin(beginx[i]) * sin(beginx[i]) + cos(beginx[i]) * cos(beginx[i]);
-//        result += tmp;
-//    }
-//}
 
 void get_elem_and_threads(int& elem_num, int& thread_num)
 {
@@ -44,7 +49,22 @@ void get_elem_and_threads(int& elem_num, int& thread_num)
     std::cin >> thread_num;
 }
 
-int main()
+void fill_vectors(long_type* beginx, long_type* beginy, size_t size)
+{
+    for (int i = 0; i < size; i++) {
+        long_type element = long_type(i);
+        if (i % 13 == 0) {
+            element *= long_type(-1);
+            beginy[i] = long_type(size) + element;
+        }
+        else {
+            beginy[i] = long_type(size) - element;
+        }
+        beginx[i] = long_type(element);
+    }
+}
+
+int main(int argc, char* argv[])
 {
    /* 
     auto begin = std::chrono::steady_clock::now();
@@ -53,25 +73,20 @@ int main()
 
     auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
     */
-
     int elem_num, thread_num;
-    get_elem_and_threads(elem_num, thread_num);
+    if (argc < 2) {
+        get_elem_and_threads(elem_num, thread_num);
+    }
+    else {
+        elem_num = std::stoi(argv[1]);
+        thread_num = std::stoi(argv[2]);
+    }
     long_type* first = new long_type[elem_num]; // first vector
     long_type* second = new long_type[elem_num]; // second vector
     long_type* result = new long_type[thread_num]; // result of summing of every thread
     long_type total_result1 = 0.0; // is created by one thread
     long_type total_result2 = 0.0;
-    for (int i = 0; i < elem_num; i++) {
-        long_type element = long_type(i);
-        if (i % 13 == 0) {
-            element *= long_type(-1);
-            second[i] = long_type(elem_num) + element;
-        }
-        else {
-            second[i] = long_type(elem_num) - element;
-        }
-        first[i] = element;
-    }
+    fill_vectors(first, second, elem_num);
     for (int i = 0; i < thread_num; i++) {
         result[i] = 0.0;
     }
@@ -109,43 +124,9 @@ int main()
     std::cout << "The summing time: " << elapsed_ms3.count() << " microseconds\n";
     std::cout << "Concurrent result: " << total_result2 << "\n";
     std::cout << "Diffrence between linear and concurrent results: " << total_result1 - total_result2 << "\n";
-
-    //for (int k = 2; k < 26; k++) {
-    //    thread_num = k;
-    //    std::cout << "\nNumber of threads: " << k << "\n";
-    //    for (int j = 0; j < 10; j++) {
-    //        std::cout << "\n";
-    //        total_result = 0.0;
-    //        for (int i = 0; i < thread_num; i++) {
-    //            result[i] = 0.0;
-    //        }
-    //        auto begin = std::chrono::steady_clock::now();
-    //        buf_mult_and_sum(first, second, elem_num, std::ref(total_result));
-    //        auto end = std::chrono::steady_clock::now();
-    //        auto elapsed_ms = std::chrono::duration_cast<std::chrono::microseconds>(end - begin);
-    //        std::cout << elapsed_ms.count() << "\n";
-    //       // std::cout << "Linear result: " << total_result << "\n";
-    //        //------------------------------------------------------------------------------------------------
-    //        total_result = 0.0;
-    //        auto begin1 = std::chrono::steady_clock::now();
-    //        size_t part = elem_num / thread_num; // часть, которая отдаётся почти каждому потоку 
-    //        std::thread* thr = new std::thread[thread_num]; // Чтобы учесть создание потоков
-    //        for (int i = 0; i < thread_num - 1; i++)
-    //        {
-    //            thr[i] = thread(buf_mult_and_sum, first + i * part, second + i * part, part, std::ref(result[i]));
-    //        }
-    //        int adding = (thread_num - 1) + elem_num % thread_num;
-    //        thr[thread_num - 1] = thread(buf_mult_and_sum, first + adding, second + adding, part, std::ref(result[thread_num - 1]));
-    //        for (int i = 0; i < thread_num; i++) {
-    //            thr[i].join();
-    //        }
-    //        buf_sum(result, thread_num, std::ref(total_result));
-    //        auto end1 = std::chrono::steady_clock::now();
-    //        auto elapsed_ms1 = std::chrono::duration_cast<std::chrono::microseconds>(end1 - begin1);
-    //        std::cout << elapsed_ms1.count() << "\n";
-    //       // std::cout << "Concurrent result: " << total_result << "\n";
-    //    }   
-    //}
+    auto elapsed_ms_total = std::chrono::duration_cast<std::chrono::microseconds>(end3 - begin1);
+    auto ms_diffrence = elapsed_ms - elapsed_ms_total;
+    std::cout << "Diffrence between linear and concurrent time: " << ms_diffrence.count() << " microseconds\n";
     return 0;
 }
 /// Результаты экспериментов
