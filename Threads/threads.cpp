@@ -9,7 +9,6 @@ using std::thread;
 /// 2 streams
 /// 4 streams
 /// 8 streams
-/// 16 streams
 /// L T / C T
 /// Data Volume
 /// 
@@ -139,8 +138,8 @@ int main(int argc, char* argv[])
     double speedup = double(elapsed_ms.count()) / elapsed_ms_total.count();
     if (for_doc) {
         std::cout << elapsed_ms_total.count() << "\n"; // concurrent time
-        std::cout << speedup << "\n";//boost
         std::cout << total_result1 - total_result2 << "\n"; // inaccuracy
+        std::cout << speedup << "\n";//boost
     }
     else {
     std::cout << "Creating time: " << elapsed_ms1.count() << " microseconds\n";
