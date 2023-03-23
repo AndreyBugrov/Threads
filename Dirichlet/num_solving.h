@@ -7,7 +7,7 @@
 #include <string>    // getting lines from user, file, script
 #include <vector>    // for vector<string> der. Delete?
 
-#include "all.h"
+#include "data_generator.h"
 
 using std::cin;
 using std::cout;

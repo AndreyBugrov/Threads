@@ -4,8 +4,8 @@
 #include <fstream>  // file gen
 #include <limits>   // random gen
 #include <random>   // random gen
+#include <string> // getline - file gen
 
-#include "all.h"
 class BaseDataGenerator {
  public:
   virtual void operator()(double** matrix, const int n);
@@ -33,6 +33,7 @@ class RandDataGenerator : public BaseDataGenerator {
 class FileDataGenerator : public BaseDataGenerator {
  protected:
   std::ifstream is;
+  const int k_CORNER_POINTS = 4;
 
  public:
   FileDataGenerator(std::string& name);

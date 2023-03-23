@@ -1,4 +1,6 @@
 #include "data_generator.h"
+void BaseDataGenerator::operator()(double** matrix, const int n) {
+}
 void RandDataGenerator::operator()(double** matrix, const int n) {
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
@@ -8,8 +10,9 @@ void RandDataGenerator::operator()(double** matrix, const int n) {
 }
 
 void FileDataGenerator::operator()(double** matrix, const int n) {
+  using std::string;
   string str;
-  for (int i = 0; i < NumDirichlet::k_CORNER_POINTS; i++) {
+  for (int i = 0; i < k_CORNER_POINTS; i++) {
     std::getline(is, str, '\n');
     string substr;
     string number;
