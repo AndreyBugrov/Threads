@@ -14,15 +14,15 @@ void NumDirichlet::get_from_user() {
 }
 
 void NumDirichlet::generate_inner_values() {
- /* std::mt19937 engine(time(NULL));
-  generator_->operator()(network_ + 1, k_N);*/
-  //for (int i = 1; i < k_N + 1; i++) {
-  //  for (int j = 1; j < k_N + 1; j++) {
-  //  }
-  //}
+  std::mt19937 engine(time(NULL));
+  generator_->operator()(network_ + 1, k_N);
+ /* for (int i = 1; i < k_N + 1; i++) {
+    for (int j = 1; j < k_N + 1; j++) {
+    }
+  }*/
 }
 
-void parse_x_y_str(const string& str, double& a, double& b, bool der_of_x) {
+void NumDirichlet::parse_x_y_str(const string& str, double& a, double& b, bool der_of_x) {
   using std::stod;
   if (str.size() == 1) {
     if (der_of_x && str[0] == 'y' || !der_of_x && str[0] == 'x') {

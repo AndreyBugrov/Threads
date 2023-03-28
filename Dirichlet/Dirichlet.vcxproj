@@ -139,7 +139,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="all.h" />
     <ClInclude Include="data_generator.h" />
     <ClInclude Include="num_solving.h" />
   </ItemGroup>
