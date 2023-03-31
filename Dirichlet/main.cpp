@@ -8,6 +8,23 @@
 
 */
 
+/*
+100y
+-100y+100
+100x
+-100x+100
+
+*/
+
+/*
+N=100
+eps = 0.1
+iter = 147209 - DEBUG
+iter = 207-223 - RELEASE
+NEEDS = 210
+Zero and Random
+*/
+
 int main(int argc, char* argv[]) {
   int k_N = 10;
   double eps = 0.01;
@@ -24,16 +41,37 @@ int main(int argc, char* argv[]) {
       cin >> eps;
       getchar();
       BaseDataGenerator* generator =
-          new RandDataGenerator(-1, 1);  //(-100.0, 100.0);
+           new RandDataGenerator(-100, 100);  //(-100.0, 100.0);
+          //new ZeroDataGenerator();
       NumDirichlet nd(generator, k_N, eps);
       nd.get_from_user();
-      nd(NumDirichlet::Method::k_Seq, network);
-      for (int i = 0; i < k_N + 2; i++) {
-        for (int j = 0; j < k_N + 2; j++) {
-          cout << network[i][j] << ' ';
-        }
-        cout << '\n';
+      cout<< "Type of counting:\n";
+      cout << "0 - seq\n";
+      cout << "1 - GaussZeidelSimple\n";
+      int choice;
+      NumDirichlet::Method method;
+      cin >> choice;
+      switch (choice) {
+        case 0:
+          method = NumDirichlet::Method::k_Seq;
+          break;
+        case 1:
+          method = NumDirichlet::Method::k_GaussZeidelSimple;
+          break;
+        default:
+          method = NumDirichlet::Method::k_Seq;
+          break;
       }
+      double time = nd(method, network);
+      if (k_N<20)
+        for (int i = 0; i < k_N + 2; i++) {
+          for (int j = 0; j < k_N + 2; j++) {
+            cout << network[i][j] << ' ';
+          }
+          cout << '\n';
+        }
+      cout << "\nIteration number: " << nd.iter_num();
+      cout << "\nTime: " << time;
     } break;
       return 0;
     case 4: {
@@ -52,7 +90,7 @@ int main(int argc, char* argv[]) {
     default:
       break;
   }
-  //NumDirichlet nd(k_N, eps);
+  // NumDirichlet nd(k_N, eps);
   // other things
   return 0;
 }

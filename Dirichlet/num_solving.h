@@ -25,6 +25,8 @@ class NumDirichlet {
   double eps_;        // maximum permissible inaccuracy
   bool got_values_;   // true if get_from_user or get_from_script have already
                       // been called
+  size_t iter_num_;
+
  protected:
   BaseDataGenerator* generator_;
 
@@ -35,7 +37,8 @@ class NumDirichlet {
       double y);  // ?: how can I create all functions as the second derivative
   void generate_inner_values();  // ?: we can't limit spread of values
   void parse_x_y_str(const string& str, double& a, double& b, bool der_of_x);
-  void seq_gauss_zeidel();
+  double seq_gauss_zeidel();
+  double gauss_zeidel_simple();
 
  public:
   enum class Method {
@@ -49,7 +52,9 @@ class NumDirichlet {
 
   void get_from_user();
   void get_from_script();
-  void operator()(Method method, double** result);
+  double operator()(Method method, double** result); // ! make it return time
+  size_t iter_num() { return iter_num_; }
+  void clear();
 
   // friend std::istream& operator>>(
   //    std::istream& is, NumDirichlet& num_dir);  // may be not necessary
@@ -58,8 +63,9 @@ class NumDirichlet {
       : generator_(generator),
         k_N(k_N),
         eps_(eps_),
-        h_(1.0 / k_N),
-        got_values_(false) {
+        h_(1.0 / (k_N + 1)),
+        got_values_(false),
+        iter_num_(0) {
     network_ = new double*[k_N + 2];
     for (int i = 0; i < k_N + 2; i++) {
       network_[i] = new double[k_N + 2];

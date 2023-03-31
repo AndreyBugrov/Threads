@@ -3,7 +3,7 @@
 
 #include <fstream>  // file gen
 #include <random>   // random gen
-#include <string> // getline - file gen
+#include <string>   // getline - file gen
 
 class BaseDataGenerator {
  public:

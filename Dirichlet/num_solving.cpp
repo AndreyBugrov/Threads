@@ -14,15 +14,19 @@ void NumDirichlet::get_from_user() {
 }
 
 void NumDirichlet::generate_inner_values() {
-  std::mt19937 engine(time(NULL));
-  generator_->operator()(network_ + 1, k_N);
- /* for (int i = 1; i < k_N + 1; i++) {
-    for (int j = 1; j < k_N + 1; j++) {
-    }
-  }*/
+  generator_->operator()(&(network_[1]), k_N);
 }
 
-void NumDirichlet::parse_x_y_str(const string& str, double& a, double& b, bool der_of_x) {
+void NumDirichlet::clear() {
+  for (int i = 0; i < k_N + 2; i++) {
+    for (int j = 0; j < k_N + 2; j++) {
+      network_[i][j] = 0.0;
+    }
+  }
+}
+
+void NumDirichlet::parse_x_y_str(const string& str, double& a, double& b,
+                                 bool der_of_x) {
   using std::stod;
   if (str.size() == 1) {
     if (der_of_x && str[0] == 'y' || !der_of_x && str[0] == 'x') {
@@ -97,36 +101,46 @@ void NumDirichlet::parse_x_y_str(const string& str, double& a, double& b, bool d
 
 void NumDirichlet::generate_frame(const vector<string>& der) {
   double a, b;
-  for (int i = 0; i < k_CORNER_POINTS / 2; i++) {
-    parse_x_y_str(der[i], a, b, true);
-    line_derivative(i, -1, a, b);
-  }
-  for (int j = k_CORNER_POINTS / 2; j < k_CORNER_POINTS; j++) {
+  for (int j = 0; j < 2; j++) {
     parse_x_y_str(der[j], a, b, true);
-    line_derivative(-1, j, a, b);
+    cout << a << " " << b << "\n";
+    line_derivative(-1, j * (k_N + 1), a, b);
+  }
+  for (int i = 1; i >= 0; i--) {
+    parse_x_y_str(der[2 + 1 - i], a, b, false);
+    cout << a << " " << b << "\n";
+    line_derivative(i * (k_N + 1), -1, a, b);
   }
 }
 void NumDirichlet::line_derivative(int i, int j, double a, double b) {
   if (j < 0) {
     for (int j = 0; j < k_N + 2; j++) {
-      network_[i][j] = a * j + b;
+      network_[i][j] = a * j * h_ + b;
     }
   } else {
     for (int i = 0; i < k_N + 2; i++) {
-      network_[j][i] = a * i + b;
+      network_[i][j] = a * (k_N + 1 - i) * h_ + b;
+      /*if (j>=0) {
+        cout << "network [" << i << "][" << j << "] = " << network_[i][j]
+             << "\n";
+        cout << "a=" << a << " "
+             << "b="<< b << "\n";
+      }*/
     }
   }
 }
 
-void NumDirichlet::operator()(NumDirichlet::Method method, double** result) {
+double NumDirichlet::operator()(NumDirichlet::Method method, double** result) {
   if (!got_values_) {
     throw string("Values did not been got");
   }
+  double time = -1;
   switch (method) {
     case NumDirichlet::Method::k_Seq:
-      seq_gauss_zeidel();
+      time = seq_gauss_zeidel();
       break;
     case NumDirichlet::Method::k_GaussZeidelSimple:
+      time = gauss_zeidel_simple();
       break;
     case NumDirichlet::Method::k_GaussZeidelLessSync:
       break;
@@ -145,6 +159,7 @@ void NumDirichlet::operator()(NumDirichlet::Method method, double** result) {
       result[i][j] = network_[i][j];
     }
   }
+  return time;
 }
 
 double NumDirichlet::f_x_y(double x, double y) { return 0; }
