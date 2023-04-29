@@ -18,11 +18,7 @@ void NumDirichlet::generate_inner_values() {
 }
 
 void NumDirichlet::clear() {
-  for (int i = 0; i < k_N + 2; i++) {
-    for (int j = 0; j < k_N + 2; j++) {
-      network_[i][j] = 0.0;
-    }
-  }
+  got_values_ = false;
 }
 
 void NumDirichlet::parse_x_y_str(const string& str, double& a, double& b,
@@ -120,46 +116,59 @@ void NumDirichlet::line_derivative(int i, int j, double a, double b) {
   } else {
     for (int i = 0; i < k_N + 2; i++) {
       network_[i][j] = a * (k_N + 1 - i) * h_ + b;
-      /*if (j>=0) {
-        cout << "network [" << i << "][" << j << "] = " << network_[i][j]
-             << "\n";
-        cout << "a=" << a << " "
-             << "b="<< b << "\n";
-      }*/
     }
   }
 }
 
-double NumDirichlet::operator()(NumDirichlet::Method method, double** result) {
+double NumDirichlet::operator()(const NumDirichlet::Method& method, double** result) {
   if (!got_values_) {
     throw string("Values did not been got");
   }
   double time = -1;
   switch (method) {
+    //?: should there be a method to init result by network_ values
     case NumDirichlet::Method::k_Seq:
-      time = seq_gauss_zeidel();
+      time = seq_gauss_zeidel(result);
       break;
     case NumDirichlet::Method::k_GaussZeidelSimple:
-      time = gauss_zeidel_simple();
+      time = gauss_zeidel_simple(result);
       break;
     case NumDirichlet::Method::k_GaussZeidelLessSync:
+      time = gauss_zeidel_less_sync(result);
       break;
     case NumDirichlet::Method::k_GaussJacobi:
+      time = gauss_jacoby(result);
       break;
     case NumDirichlet::Method::k_GaussZeidelWave:
+      time = gauss_zeidel_wave(result);
       break;
     case NumDirichlet::Method::k_GaussZeidelBlockWave:
+      time = gauss_zeidel_block_wave(result);
       break;
     default:
+      throw string("Wrong mode");
       break;
   }
-  // This can be function assign_result()
-  for (int i = 0; i < k_N + 2; i++) {
+  /*for (int i = 0; i < k_N + 2; i++) {
     for (int j = 0; j < k_N + 2; j++) {
       result[i][j] = network_[i][j];
     }
-  }
+  }*/
   return time;
 }
 
 double NumDirichlet::f_x_y(double x, double y) { return 0; }
+void NumDirichlet::recreate(const size_t& new_k_N, double eps) {
+  for (int i = 0; i < k_N + 2; i++) {
+    delete[] network_[i];
+  }
+  delete[] network_;
+  network_ = new double*[new_k_N + 2];
+  k_N = new_k_N;
+  h_ = 1.0 / double(k_N + 1);
+  eps_ = eps;
+  for (int i = 0; i < k_N+2; i++) {
+    network_[i] = new double[k_N + 2];
+  }
+  get_from_user();
+}

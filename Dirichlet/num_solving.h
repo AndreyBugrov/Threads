@@ -19,8 +19,8 @@ class NumDirichlet {
   static const int k_CORNER_POINTS = 4;
 
  protected:
-  const int k_N;      // number of internal points (iterate from 1 to k_N+1)
-  const double h_;    // step in network
+  int k_N;            // number of internal points (iterate from 1 to k_N+1)
+  double h_;          // step in network
   double** network_;  // should be stored in class-allocator
   double eps_;        // maximum permissible inaccuracy
   bool got_values_;   // true if get_from_user or get_from_script have already
@@ -32,13 +32,21 @@ class NumDirichlet {
 
   void generate_frame(const vector<string>& der);
   void line_derivative(int i, int j, double a, double b);
-  double f_x_y(
-      double x,
-      double y);  // ?: how can I create all functions as the second derivative
-  void generate_inner_values();  // ?: we can't limit spread of values
+  double f_x_y(double x, double y);
+  void generate_inner_values();
   void parse_x_y_str(const string& str, double& a, double& b, bool der_of_x);
-  double seq_gauss_zeidel();
-  double gauss_zeidel_simple();
+
+  // theese methods return time
+  // result is matrix which size is k_N+2 x k_N+2
+
+  double seq_gauss_zeidel(double** result);  // sequential
+  double gauss_zeidel_simple(
+      double** result);  // slow because of synchronization
+  double gauss_zeidel_less_sync(double** result);  // incorrect
+  double gauss_jacoby(double** result);  // needs extra memory (k_N x k_N), is
+                                         // not equal seq algorithm
+  double gauss_zeidel_wave(double** result);
+  double gauss_zeidel_block_wave(double** result);
 
  public:
   enum class Method {
@@ -52,9 +60,11 @@ class NumDirichlet {
 
   void get_from_user();
   void get_from_script();
-  double operator()(Method method, double** result); // ! make it return time
+  double operator()(const Method& method,
+                    double** result);  // ! make it return time
   size_t iter_num() { return iter_num_; }
   void clear();
+  void recreate(const size_t& new_k_N, double eps);
 
   // friend std::istream& operator>>(
   //    std::istream& is, NumDirichlet& num_dir);  // may be not necessary

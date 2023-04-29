@@ -29,7 +29,7 @@
     <ClCompile Include="main.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="num_methonds.cpp">
+    <ClCompile Include="num_methods.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="data_generator.cpp">
