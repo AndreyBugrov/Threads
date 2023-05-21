@@ -1,5 +1,5 @@
 #pragma once
-#include <time.h>
+#include <time.h>  // random gen
 
 #include <fstream>  // file gen
 #include <random>   // random gen
@@ -27,7 +27,8 @@ class RandDataGenerator : public BaseDataGenerator {
   virtual ~RandDataGenerator() = default;
 };
 /// <summary>
-/// Do not use this class!!! It is not finally made
+/// symbols before "use" are made by my cat
+/// Do not  nn\9'/;use this class!!! It is not finally made
 /// </summary>
 class FileDataGenerator : public BaseDataGenerator {
  protected:

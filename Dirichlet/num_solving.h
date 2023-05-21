@@ -26,10 +26,9 @@ class NumDirichlet {
   bool got_values_;   // true if get_from_user or get_from_script have already
                       // been called
   size_t iter_num_;
-
- protected:
   BaseDataGenerator* generator_;
 
+ protected:
   void generate_frame(const vector<string>& der);
   void line_derivative(int i, int j, double a, double b);
   double f_x_y(double x, double y);
@@ -59,9 +58,10 @@ class NumDirichlet {
   };
 
   void get_from_user();
-  void get_from_script();
-  double operator()(const Method& method,
-                    double** result);  // ! make it return time
+  void get_from_script(string x_0, string x_1, string y_0, string y_1);
+  double operator()(
+      const Method& method,
+      double** result);  // returns time, result is in result matrix
   size_t iter_num() { return iter_num_; }
   void clear();
   void recreate(const size_t& new_k_N, double eps);
@@ -69,6 +69,22 @@ class NumDirichlet {
   // friend std::istream& operator>>(
   //    std::istream& is, NumDirichlet& num_dir);  // may be not necessary
 
+  // NumDirichlet(NumDirichlet&& nd)
+  //    : k_N(nd.k_N),
+  //      eps_(nd.eps_),
+  //      h_(nd.h_),
+  //      got_values_(got_values_),
+  //      iter_num_(nd.iter_num_) {
+  //  generator_ = nullptr;
+  //  std::swap(generator_, nd.generator_);
+  //  network_ = nullptr;
+  //  std::swap(network_, nd.network_);
+  //  nd.got_values_ = false;
+  //}
+ private:
+  NumDirichlet(NumDirichlet&& nd);
+
+ public:
   NumDirichlet(BaseDataGenerator* generator, int k_N = 10, double eps_ = 0.01)
       : generator_(generator),
         k_N(k_N),
@@ -89,3 +105,5 @@ class NumDirichlet {
     delete[] network_;
   }
 };
+
+double diff(double** network, double** seq_network, int k_N);

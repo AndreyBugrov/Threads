@@ -13,13 +13,20 @@ void NumDirichlet::get_from_user() {
   got_values_ = true;
 }
 
-void NumDirichlet::generate_inner_values() {
-  generator_->operator()(&(network_[1]), k_N);
+void NumDirichlet::get_from_script(string x_0, string x_1, string y_0,
+                                        string y_1) {
+  vector<string> der{x_0, x_1, y_0, y_1};
+  generate_frame(der);
+  generate_inner_values();
+  got_values_ = true;
 }
 
-void NumDirichlet::clear() {
-  got_values_ = false;
+void NumDirichlet::generate_inner_values() {
+  // generator_->operator()(&(network_[1]), k_N);
+  generator_->operator()(network_, k_N);
 }
+
+void NumDirichlet::clear() { got_values_ = false; }
 
 void NumDirichlet::parse_x_y_str(const string& str, double& a, double& b,
                                  bool der_of_x) {
@@ -99,12 +106,10 @@ void NumDirichlet::generate_frame(const vector<string>& der) {
   double a, b;
   for (int j = 0; j < 2; j++) {
     parse_x_y_str(der[j], a, b, true);
-    cout << a << " " << b << "\n";
     line_derivative(-1, j * (k_N + 1), a, b);
   }
   for (int i = 1; i >= 0; i--) {
     parse_x_y_str(der[2 + 1 - i], a, b, false);
-    cout << a << " " << b << "\n";
     line_derivative(i * (k_N + 1), -1, a, b);
   }
 }
@@ -120,7 +125,8 @@ void NumDirichlet::line_derivative(int i, int j, double a, double b) {
   }
 }
 
-double NumDirichlet::operator()(const NumDirichlet::Method& method, double** result) {
+double NumDirichlet::operator()(const NumDirichlet::Method& method,
+                                double** result) {
   if (!got_values_) {
     throw string("Values did not been got");
   }
@@ -149,11 +155,6 @@ double NumDirichlet::operator()(const NumDirichlet::Method& method, double** res
       throw string("Wrong mode");
       break;
   }
-  /*for (int i = 0; i < k_N + 2; i++) {
-    for (int j = 0; j < k_N + 2; j++) {
-      result[i][j] = network_[i][j];
-    }
-  }*/
   return time;
 }
 
@@ -167,8 +168,22 @@ void NumDirichlet::recreate(const size_t& new_k_N, double eps) {
   k_N = new_k_N;
   h_ = 1.0 / double(k_N + 1);
   eps_ = eps;
-  for (int i = 0; i < k_N+2; i++) {
+  for (int i = 0; i < k_N + 2; i++) {
     network_[i] = new double[k_N + 2];
   }
   get_from_user();
+}
+double diff(double** network, double** seq_network, int k_N) {
+  double max_dif = 0;
+  // we don't need to compare frames: they are equal
+  for (int i = 1; i < k_N + 1; i++) {
+    for (int j = 1; j < k_N + 1; j++) {
+      double tmp =
+          fabs((network[i][j] - seq_network[i][j]) / seq_network[1][1]);
+      if (tmp > max_dif) {
+        max_dif = tmp;
+      }
+    }
+  }
+  return max_dif;
 }
