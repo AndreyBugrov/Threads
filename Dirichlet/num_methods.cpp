@@ -247,7 +247,8 @@ double NumDirichlet::gauss_zeidel_block_wave(double** result) {
     dm[i] = 0;
   }
   double t1 = omp_get_wtime();
-  const int block_num = (k_N + 1) / omp_get_num_threads();
+  const int n = (k_N) / omp_get_num_threads();
+  const int block_num = omp_get_num_threads();
   // cout << "\nNum of Threads: " << omp_get_num_threads() << "\n";
   do {
     iter_num_++;
