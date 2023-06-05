@@ -1,0 +1,19 @@
+import subprocess
+import csv
+to_prevent_deleting = input("If you purposely wanted to launch it, input anything")
+for thread_num in [2,4,8]:
+    str_thread_num = str(thread_num)
+    name = "linear_matrix_n=const"+str_thread_num+".csv"
+    with open(name, "w",newline="") as file:
+        writer = csv.writer(file,delimiter=";")
+        writer.writerow(('Sequential time',"Concurrent time",'Inaccuracy','Speedup'))
+        n = 1000000
+        for m in range(6,383,4):
+            # "s" like serial experiment
+            # 'l' like linear matrix
+            process = subprocess.Popen(["D:\\PROJECTS\\Курсовая работа\\Threads\\Threads\\x64\\Release\\Matrix.exe",
+                                                      str(n), str(m), str_thread_num, "s",'l'], stdout=subprocess.PIPE)
+            data = process.communicate()
+            lines = data[0].decode("UTF-8")
+            out = lines.split(sep='\r\n')
+            writer.writerow(out)
